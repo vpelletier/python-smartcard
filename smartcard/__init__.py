@@ -19,9 +19,9 @@
 from collections import defaultdict
 import ctypes
 import itertools
+import logging
 import random
 import struct
-import traceback
 import persistent
 from .asn1 import (
     CLASS_UNIVERSAL,
@@ -127,6 +127,8 @@ from .utils import (
     bitpos,
     bitcount,
 )
+
+logger = logging.getLogger(__name__)
 
 def encodeBEInteger(value):
     """
@@ -2063,7 +2065,7 @@ class Card(PersistentWithVolatileSurvivor):
         Return the Answer-To-Reset data.
         """
         atr = self.traverse((MASTER_FILE_IDENTIFIER, )).getAnswerToReset()
-        print('Card.getATR:', atr.hex())
+        logging.debug('Card.getATR:', atr.hex())
         return atr
 
     def handleSelect(
@@ -3157,14 +3159,17 @@ class Card(PersistentWithVolatileSurvivor):
             with transaction_manager:
                 result = self._runAPDU(command)
         except APDUException as exc:
-            print('APDU exception', repr(exc))
+            logger.debug('APDU exception', exc)
             result = exc.value
-            print('APDU response len=', len(result), 'value=', result.hex())
+            logger.debug('APDU response len=', len(result), 'value=', result.hex())
         # XXX: convert ZODB errors (ex: POSKeyError) into ErrorPersistentChangedMemoryFailure ?
         except Exception: # pylint: disable=broad-except
-            traceback.print_exc()
+            logging.error(
+                'APDU processing raised an unhandled exception',
+                exc_info=1,
+            )
             result = UnspecifiedError().value
-            print('APDU response len=', len(result), 'value=', result.hex())
+            logger.debug('APDU response len=', len(result), 'value=', result.hex())
         return result
 
     def _runAPDU(self, command):
@@ -3209,7 +3214,7 @@ class Card(PersistentWithVolatileSurvivor):
             raise InstructionNotSupported
         p1 = head.parameter1
         p2 = head.parameter2
-        print('APDU request %s %s chan=%i %s bertlv=%r p1=%02x p2=%02x command=%s response_len=%02x' % (
+        logger.debug('APDU request %s %s chan=%i %s bertlv=%r p1=%02x p2=%02x command=%s response_len=%02x' % (
             'final' if is_chain_final else 'chained',
             {
                 SECURE_NONE: 'SECURE_NONE',
@@ -3242,7 +3247,7 @@ class Card(PersistentWithVolatileSurvivor):
                 command_data = chainBytearrayList(self._v_s_apdu_chaining)
                 self._clearAPDUChaining()
             else:
-                print('APDU chain still going, intermediate SUCCESS')
+                logger.debug('APDU chain still going, intermediate SUCCESS')
                 return SUCCESS
         if secure is not SECURE_NONE:
             # TODO: support secure messaging
@@ -3294,8 +3299,8 @@ class Card(PersistentWithVolatileSurvivor):
                         response_len=response_len,
                     )
         if len(result) - 2 > response_len:
-            print('APDU response too long, stashing:', len(result) - 2)
+            logger.debug('APDU response too long, stashing:', len(result) - 2)
             channel.queue(result)
             result = channel.dequeue(response_len)
-        print('APDU response len=', len(result), 'value=', result.hex())
+        logger.debug('APDU response len=', len(result), 'value=', result.hex())
         return bytearray(result)
