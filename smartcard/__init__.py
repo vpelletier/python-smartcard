@@ -3168,10 +3168,8 @@ class Card(PersistentWithVolatileSurvivor):
 
     def _runAPDU(self, command):
         head, command_data, response_len = decodeAPDU(command)
-        print('APDU request', end=' ')
         if head.klass & CLASS_TYPE_MASK == CLASS_TYPE_PROPRIETARY:
-            print('proprietary %02x' % (head.klass & ~CLASS_TYPE_MASK))
-            raise ClassNotSupported
+            raise ClassNotSupported('proprietary %02x' % (head.klass & ~CLASS_TYPE_MASK))
         klass = head.klass
         if klass & CLASS_STANDARD_FIRST_MASK == CLASS_STANDARD_FIRST:
             is_chain_final = (
@@ -3202,8 +3200,7 @@ class Card(PersistentWithVolatileSurvivor):
                 klass & CLASS_STANDARD_FURTHER_SECURE_MASK
             ]
         else:
-            print('unknown head format %02x' % head.klass)
-            raise ClassNotSupported
+            raise ClassNotSupported('unknown head format %02x' % head.klass)
         instruction = head.instruction & ~INSTRUCTION_BERTLV_MASK
         is_bertlv = head.instruction & INSTRUCTION_BERTLV_MASK == INSTRUCTION_BERTLV
         instruction_supports_bertlv = instruction in BERTLV_SUPPORT_SET
@@ -3211,7 +3208,7 @@ class Card(PersistentWithVolatileSurvivor):
             raise InstructionNotSupported
         p1 = head.parameter1
         p2 = head.parameter2
-        print('%s %s chan=%i %s bertlv=%r p1=%02x p2=%02x command=%s response_len=%02x' % (
+        print('APDU request %s %s chan=%i %s bertlv=%r p1=%02x p2=%02x command=%s response_len=%02x' % (
             'final' if is_chain_final else 'chained',
             {
                 SECURE_NONE: 'SECURE_NONE',
