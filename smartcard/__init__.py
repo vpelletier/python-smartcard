@@ -3214,7 +3214,8 @@ class Card(PersistentWithVolatileSurvivor):
             raise InstructionNotSupported
         p1 = head.parameter1
         p2 = head.parameter2
-        logger.debug('APDU request %s %s chan=%i %s bertlv=%r p1=%02x p2=%02x command=%s response_len=%02x' % (
+        logger.debug(
+            'APDU request %s %s chan=%i %s bertlv=%r p1=%02x p2=%02x command=%s response_len=%02x',
             'final' if is_chain_final else 'chained',
             {
                 SECURE_NONE: 'SECURE_NONE',
@@ -3229,7 +3230,7 @@ class Card(PersistentWithVolatileSurvivor):
             p2,
             command_data.hex(),
             response_len,
-        ))
+        )
         try:
             channel = self._v_s_channel_list[channel_number]
         except IndexError:
