@@ -1474,7 +1474,7 @@ class MasterFile(DedicatedFile):
             # but will be expected (especially the historical bytes) by the
             # host application.
             # TS = 0x3b: Direct convention
-            # T0 = 0xda: TA1, TC1 and TD1 follow, 10 historical bytes
+            # T0 = 0xdN: TA1, TC1 and TD1 follow, N historical bytes
             # TA1 = 0x11: FI=1 (5MHz max), DI=1 (1 bit per cycle)
             # TC1 = 0xff: N=255 (character guard interval, irrelevant to
             #                    virtual card & reader)
@@ -1487,7 +1487,9 @@ class MasterFile(DedicatedFile):
             # No TC3: LRC error detection (default)
             # TD3 = 0x1f: TA4 follows, T=15 (global interface bytes)
             # TA4 = 0x03: Clock stop not supported, 5V and 3.3V supported
-            b'\x3b\xda\x11\xff\x81\xb1\xfe\x55\x1f\x03',
+            b'\x3b' + (
+                0xd0 | len(historical_bytes)
+            ).to_bytes(1, 'big') + '\x11\xff\x81\xb1\xfe\x55\x1f\x03',
         ) + historical_bytes + bytearray(1) # TCK
         assert len(atr_data) <= 32, len(atr_data)
         atr_data[-1] = _xor(atr_data[1:]) # Compute TCK
