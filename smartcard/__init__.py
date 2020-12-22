@@ -2067,7 +2067,7 @@ class Card(PersistentWithVolatileSurvivor):
         Return the Answer-To-Reset data.
         """
         atr = self.traverse((MASTER_FILE_IDENTIFIER, )).getAnswerToReset()
-        logging.debug('Card.getATR:', atr.hex())
+        logger.debug('Card.getATR: %s', atr.hex())
         return atr
 
     def handleSelect(
@@ -3161,17 +3161,17 @@ class Card(PersistentWithVolatileSurvivor):
             with transaction_manager:
                 result = self._runAPDU(command)
         except APDUException as exc:
-            logger.debug('APDU exception', exc)
+            logger.debug('APDU exception %s', exc)
             result = exc.value
-            logger.debug('APDU response len=', len(result), 'value=', result.hex())
+            logger.debug('APDU response len=%s value=%s', len(result), result.hex())
         # XXX: convert ZODB errors (ex: POSKeyError) into ErrorPersistentChangedMemoryFailure ?
         except Exception: # pylint: disable=broad-except
-            logging.error(
+            logger.error(
                 'APDU processing raised an unhandled exception',
                 exc_info=1,
             )
             result = UnspecifiedError().value
-            logger.debug('APDU response len=', len(result), 'value=', result.hex())
+            logger.debug('APDU response len=%s value=%s', len(result), result.hex())
         return result
 
     def _runAPDU(self, command):
@@ -3302,8 +3302,8 @@ class Card(PersistentWithVolatileSurvivor):
                         response_len=response_len,
                     )
         if len(result) - 2 > response_len:
-            logger.debug('APDU response too long, stashing:', len(result) - 2)
+            logger.debug('APDU response too long, stashing %s bytes', len(result) - 2)
             channel.queue(result)
             result = channel.dequeue(response_len)
-        logger.debug('APDU response len=', len(result), 'value=', result.hex())
+        logger.debug('APDU response len=%s value=%s', len(result), result.hex())
         return bytearray(result)
