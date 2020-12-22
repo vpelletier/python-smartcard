@@ -1489,7 +1489,7 @@ class MasterFile(DedicatedFile):
             # TA4 = 0x03: Clock stop not supported, 5V and 3.3V supported
             b'\x3b' + (
                 0xd0 | len(historical_bytes)
-            ).to_bytes(1, 'big') + '\x11\xff\x81\xb1\xfe\x55\x1f\x03',
+            ).to_bytes(1, 'big') + b'\x11\xff\x81\xb1\xfe\x55\x1f\x03',
         ) + historical_bytes + bytearray(1) # TCK
         assert len(atr_data) <= 32, len(atr_data)
         atr_data[-1] = _xor(atr_data[1:]) # Compute TCK
