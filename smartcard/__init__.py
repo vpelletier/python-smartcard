@@ -3159,11 +3159,12 @@ class Card(PersistentWithVolatileSurvivor):
         except APDUException as exc:
             print('APDU exception', repr(exc))
             result = exc.value
+            print('APDU response len=', len(result), 'value=', result.hex())
         # XXX: convert ZODB errors (ex: POSKeyError) into ErrorPersistentChangedMemoryFailure ?
         except Exception: # pylint: disable=broad-except
             traceback.print_exc()
             result = UnspecifiedError().value
-        print('APDU response len=', len(result), 'value=', result.hex())
+            print('APDU response len=', len(result), 'value=', result.hex())
         return result
 
     def _runAPDU(self, command):
@@ -3296,4 +3297,5 @@ class Card(PersistentWithVolatileSurvivor):
             print('APDU response too long, stashing:', len(result) - 2)
             channel.queue(result)
             result = channel.dequeue(response_len)
+        print('APDU response len=', len(result), 'value=', result.hex())
         return bytearray(result)
