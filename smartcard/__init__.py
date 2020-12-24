@@ -318,7 +318,7 @@ INSTRUCTION_METHOD_ID_DICT = {
     INSTRUCTION_RESET_RETRY_COUNTER: 'handleResetRetryCounter',                                 # Done? (pgp spec only)
     INSTRUCTION_MANAGE_CHANNEL: 'handleManageChannel',                                          # Done
     INSTRUCTION_EXTERNAL_AUTHENTICATE: 'handleExternalAuthenticate',                            #
-    INSTRUCTION_GET_CHALLENGE: 'handleGetChallenge',                                            #
+    INSTRUCTION_GET_CHALLENGE: 'handleGetChallenge',                                            # Done
     INSTRUCTION_GENERAL_AUTHENTICATE: 'handleGeneralAuthenticate',                              #
     INSTRUCTION_INTERNAL_AUTHENTICATE: 'handleInternalAuthenticate',                            # Done~
     INSTRUCTION_SEARCH_BINARY: 'handleSearchBinary',                                            # Done
@@ -3148,6 +3148,25 @@ class Card(PersistentWithVolatileSurvivor):
         )
         return SUCCESS
 
+    def handleGetChallenge(
+        self,
+        channel,
+        apdu_head,
+        command_data,
+        response_len,
+    ):
+        current_file = channel.traverse()
+        try:
+            method = current_file.getChallenge
+        except AttributeError:
+            raise InstructionIncompatibleWithFile from None
+        return method(
+            channel=channel,
+            p1=apdu_head.parameter1,
+            p2=apdu_head.parameter2,
+            command_data=command_data,
+            response_len=response_len,
+        )
 
     def runAPDU(self, command):
         """
