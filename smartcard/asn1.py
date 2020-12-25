@@ -91,14 +91,14 @@ class TypeBase(metaclass=MetaTag):
         """
         Convert value (python native object) into bytes.
         """
-        raise NotImplementedError
+        raise NotImplementedError(repr(cls))
 
     @classmethod
     def decode(cls, value, codec):
         """
         Convert value (bytes) into a python object.
         """
-        raise NotImplementedError
+        raise NotImplementedError(repr(cls))
 
 class TypeListBase(TypeBase):
     is_composite = True
@@ -107,7 +107,7 @@ class TypeListBase(TypeBase):
 
     @classmethod
     def iterItemSchema(cls):
-        raise NotImplementedError
+        raise NotImplementedError(repr(cls))
 
     @classmethod
     def encode(cls, value, codec):
