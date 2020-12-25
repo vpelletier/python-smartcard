@@ -301,8 +301,7 @@ class CardLifecycle(LifecycleBase):
     klass = CLASS_APPLICATION
     identifier = 0x08
 
-class ExtendedHeaderList(TypeApplicationSimpleBase): #pylint: disable=abstract-method
-    # XXX: this is not really a simple type...
+class ExtendedHeaderList(TypeApplicationString):
     identifier = 0x0d
 
 class ApplicationIdentifier(TypeApplicationString):
