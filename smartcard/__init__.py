@@ -18,6 +18,7 @@
 
 from collections import defaultdict
 import ctypes
+import functools
 import itertools
 import logging
 import random
@@ -151,6 +152,7 @@ def _xor(byte_value):
         result ^= item
     return result
 
+@functools.total_ordering
 class APDUHead(ctypes.Structure, Antipersistent):
     """
     Structure of an Application Protocol Data Unit fixed-size header.
@@ -162,7 +164,29 @@ class APDUHead(ctypes.Structure, Antipersistent):
         ('parameter1', ctypes.c_ubyte),
         ('parameter2', ctypes.c_ubyte),
     ]
+
+    def __eq__(self, other):
+        return (
+            self.klass == getattr(other, 'klass', None) and
+            self.instruction == getattr(other, 'instruction', None) and
+            self.parameter1 == getattr(other, 'parameter1', None) and
+            self.parameter2 == getattr(other, 'parameter2', None)
+        )
+
+    def __lt__(self, other):
+        return NotImplemented
+
 APDU_HEAD_LENGTH = ctypes.sizeof(APDUHead)
+
+def dumpAPDUHead(head):
+    if head is None:
+        return 'None'
+    return 'class=%02x instruction=%02x p1=%02x p2=%02x' % (
+        head.klass,
+        head.instruction,
+        head.parameter1,
+        head.parameter2,
+    )
 
 CLASS_TYPE_MASK = 0x80
 CLASS_TYPE_PROPRIETARY = 0x80
@@ -3202,11 +3226,8 @@ class Card(PersistentWithVolatileSurvivor):
             is_chain_final = (
                 klass & CLASS_STANDARD_FIRST_CHAINING_MASK
             ) == CLASS_STANDARD_FIRST_CHAINING_FINAL
-            if is_chain_final:
-                final_head = head
-            else:
-                final_head = APDUHead.from_buffer_copy(command)
-                final_head.klass &= ~CLASS_STANDARD_FIRST_CHAINING_MASK
+            final_head = APDUHead.from_buffer_copy(command)
+            final_head.klass &= ~CLASS_STANDARD_FIRST_CHAINING_MASK
             channel_number = klass & CLASS_STANDARD_FIRST_CHAN_MASK
             secure = CLASS_STANDARD_FIRST_SECURE_DICT[
                 klass & CLASS_STANDARD_FIRST_SECURE_MASK
@@ -3217,11 +3238,8 @@ class Card(PersistentWithVolatileSurvivor):
             is_chain_final = (
                 klass & CLASS_STANDARD_FURTHER_CHAINING_MASK
             ) == CLASS_STANDARD_FURTHER_CHAINING_FINAL
-            if is_chain_final:
-                final_head = head
-            else:
-                final_head = APDUHead.from_buffer_copy(command)
-                final_head.klass &= ~CLASS_STANDARD_FURTHER_CHAINING_MASK
+            final_head = APDUHead.from_buffer_copy(command)
+            final_head.klass &= ~CLASS_STANDARD_FURTHER_CHAINING_MASK
             channel_number = 4 + (klass & CLASS_STANDARD_FURTHER_CHAN_MASK)
             secure = CLASS_STANDARD_FURTHER_SECURE_DICT[
                 klass & CLASS_STANDARD_FURTHER_SECURE_MASK
@@ -3263,7 +3281,13 @@ class Card(PersistentWithVolatileSurvivor):
         if self._v_s_apdu_chaining_head is not None:
             if final_head != self._v_s_apdu_chaining_head:
                 # Head changed mid-chain, complain.
-                raise ClassChainContinuationUnsupported
+                try:
+                    raise ClassChainContinuationUnsupported(
+                        dumpAPDUHead(final_head),
+                        dumpAPDUHead(self._v_s_apdu_chaining_head),
+                    )
+                finally:
+                    self._clearAPDUChaining()
             self._v_s_apdu_chaining.append(command_data)
             if is_chain_final:
                 command_data = chainBytearrayList(self._v_s_apdu_chaining)
