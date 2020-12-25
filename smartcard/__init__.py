@@ -2796,7 +2796,10 @@ class Card(PersistentWithVolatileSurvivor):
                 if p1p2 == 0 else
                 struct.pack('BB', p1, p2)
             ), ))
-            tag_list = list(command_tag_dict.items())
+            tag_list = [
+                (tag, bytes(value))
+                for tag, value in command_tag_dict.items()
+            ]
         else:
             if p1p2 < 0x40 or p1p2 in (0xff, 0x200, 0x2ff, 0x4000, 0xffff):
                 raise ParameterFunctionNotSupported
