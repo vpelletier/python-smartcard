@@ -576,17 +576,16 @@ class CodecBER(CodecBase):
     @classmethod
     def decodeLength(cls, value):
         length = value[0]
+        offset = 1
         if length & 0x80:
             length_length = length & 0x7f
             if length_length > 4:
                 raise ValueError
             length = int.from_bytes(
-                value[1 : 1 + length_length],
+                value[offset:offset + length_length],
                 'big',
             )
-            offset = length_length
-        else:
-            offset = 1
+            offset += length_length
         return (
             length,
             value[offset:],
