@@ -111,7 +111,7 @@ from .status import (
     NoCurrentElementaryFile,
     NoSpaceInFile,
     ParameterFunctionNotSupported,
-    ReferenceDataNotFound,
+    RecordNotFound,
     SecurityNotSatisfied,
     successWithMoreResponseBytes,
     UnspecifiedError,
@@ -797,12 +797,12 @@ class BaseFile(persistent.Persistent):
                 try:
                     value, = value
                 except ValueError:
-                    raise ReferenceDataNotFound from None
+                    raise RecordNotFound from None
             else:
                 try:
                     value = value[index]
                 except IndexError:
-                    raise ReferenceDataNotFound from None
+                    raise RecordNotFound from None
             if not isinstance(value, bytes):
                 raise TypeError(type(value))
             if decode:
