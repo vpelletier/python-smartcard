@@ -341,7 +341,7 @@ class CodecBase:
     def _decode(cls, tag, length, payload):
         chunk = payload[:length]
         if len(chunk) != length:
-            raise ValueError
+            raise ValueError('expected %i bytes, got %i' % (length, len(chunk)))
         return (
             tag.decode(
                 value=chunk,
