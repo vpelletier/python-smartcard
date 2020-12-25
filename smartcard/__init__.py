@@ -118,7 +118,6 @@ from .status import (
     WrongLength,
     WrongParameterInCommandData,
     WrongParametersP1P2,
-    WrongResponseLength
 )
 from .utils import (
     chainBytearrayList,
@@ -2420,11 +2419,9 @@ class Card(PersistentWithVolatileSurvivor):
         result = method(offset, response_len)
         if is_bertlv:
             result = DiscretionaryData.encode(value=result, codec=CodecBER)
-        if response_len < len(result):
-            raise WrongResponseLength(bytes_available=len(result))
         return result + (
             SUCCESS
-            if response_len == len(result) else
+            if response_len <= len(result) else
             WARNING_EOF # response_len > len(result)
         )
 
@@ -2719,10 +2716,7 @@ class Card(PersistentWithVolatileSurvivor):
                 if value is None:
                     continue
                 response_list.append(encodeTag(tag) + value)
-        result = b''.join(response_list)
-        if response_len < len(result):
-            raise WrongResponseLength(bytes_available=len(result))
-        return result + SUCCESS
+        return b''.join(response_list) + SUCCESS
 
     def handleGetData(
         self,
