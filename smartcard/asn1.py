@@ -581,7 +581,7 @@ class CodecBER(CodecBase):
             if length_length > 4:
                 raise ValueError
             length = int.from_bytes(
-                value[offset:offset + length_length],
+                value[1 : 1 + length_length],
                 'big',
             )
             offset = length_length
