@@ -3201,7 +3201,7 @@ class Card(PersistentWithVolatileSurvivor):
             with transaction_manager:
                 result = self._runAPDU(command)
         except APDUException as exc:
-            logger.debug('APDU exception %s', exc)
+            logger.debug('APDU exception %r', exc)
             result = exc.value
             logger.debug('APDU response len=%s value=%s', len(result), result.hex())
         # XXX: convert ZODB errors (ex: POSKeyError) into ErrorPersistentChangedMemoryFailure ?
