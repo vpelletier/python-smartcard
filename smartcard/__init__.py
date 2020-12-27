@@ -3350,3 +3350,7 @@ class Card(PersistentWithVolatileSurvivor):
             result = channel.dequeue(response_len)
         logger.debug('APDU response len=%s value=%s', len(result), result.hex())
         return bytearray(result)
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
