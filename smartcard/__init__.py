@@ -54,6 +54,7 @@ from .tag import (
     EF_GDO_IDENTIFIER,
     ExtendedHeaderList,
     FileChannelSecurity,
+    FileControlParametersAndManagementData,
     FileControlParameterTemplate,
     FileDataObjectSecurityProprietary,
     FileDataObjectSecurityTemplate,
@@ -2270,11 +2271,14 @@ class Card(PersistentWithVolatileSurvivor):
                             continue
                         entry_list.append((tag, value))
                     if entry_list:
-                        wrapped_list.append(wrapper_tag.encode(
-                            value=entry_list,
-                            codec=CodecBER,
+                        wrapped_list.append((
+                            wrapper_tag,
+                            entry_list,
                         ))
-                result = b''.join(wrapped_list) + result
+                result = CodecBER.encode(
+                    tag=FileControlParametersAndManagementData,
+                    value=wrapped_list,
+                ) + result
         return result
 
     def handleManageChannel(
