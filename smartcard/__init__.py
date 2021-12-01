@@ -3355,6 +3355,5 @@ class Card(PersistentWithVolatileSurvivor):
         logger.debug('APDU response len=%s value=%s', len(result), result.hex())
         return bytearray(result)
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+from . import _version
+__version__ = _version.get_versions()['version']
